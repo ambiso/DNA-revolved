@@ -58,7 +58,7 @@ int main(int argc, char **argv)
                 errCmd("Could not find mode \"" + cmd + "\".");
                 continue;
             }
-            format->clear();
+            resetCode(*format);
             *format << rd;
             rd.close();
         }
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
                 continue;
             }
 
-            format2->clear();
+            resetCode(*format2);
             *format1 >> *format2;
         }
         else if(cmd == "print")

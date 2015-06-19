@@ -41,29 +41,14 @@ ByteCode& DNACode::operator>>(ByteCode &other) //local to bytecode -> ByteCode
     code.seekg(0);
     char curChar;
     char curOp[4];
-    bool swapOp = false;
-    for(int j = 0; code.good(); j++)
+    while(code.good())
     {
         for(int i = 0; i < 4; i++)
         {
             while(code.read(&curChar, 1), (curChar != 'A' && curChar != 'G' && curChar != 'T' && curChar != 'C') && code.good());
             curOp[i] = curChar;
         }
-        if(swapOp)
-        {
-            curOp[0] ^= curOp[1];
-            curOp[1] ^= curOp[0];
-            curOp[0] ^= curOp[1];
-
-            curOp[2] ^= curOp[3];
-            curOp[3] ^= curOp[2];
-            curOp[2] ^= curOp[3];
-        }
         convertAndWrite(other, curOp);
-        if(!legacy && (j%4 == 3))
-        {
-            swapOp = !swapOp;
-        }
     }
     return other;
 }
@@ -84,21 +69,30 @@ Code& DNACode::operator<<(ByteCode &other)
     char line[12];
     int len;
     other.resetReader();
-    while(other.good())
+    bool swapOp = false;
+    for(int i = 0; ((len = other.readTok(op)) != 0) && other.good(); i++, i%=8)
     {
-        for(int i = 0; i < 8 && ((len = other.readTok(op)) != 0); i++)
+        int u = i < 4 ? i : 8 - i - 1;
+
+        convert(op, dna, len);
+
+        if(swapOp)
         {
-            int u = i < 4 ? i : 8 - i - 1;
-            convert(op, dna, len);
-            sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[0], templates[u][1], remap(dna[0]), templates[u][2]);
-            code << line;
-
-            i++;
-            u = i < 4 ? i : 8 - i - 1;
-
-            sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[1], templates[u][1], remap(dna[1]), templates[u][2]);
-            code << line;
+            dna[0] = remap(dna[0]);
+            dna[1] = remap(dna[1]);
         }
+        sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[0], templates[u][1], remap(dna[0]), templates[u][2]);
+        code << line;
+
+        i++;
+        if(!legacy && i == 7)
+        {
+            swapOp = !swapOp;
+        }
+        u = i < 4 ? i : 8 - i - 1;
+
+        sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[1], templates[u][1], remap(dna[1]), templates[u][2]);
+        code << line;
     }
     return *this;
 }
@@ -140,8 +134,7 @@ std::istream& DNACode::operator<<(std::istream &is)
                 }
                 if(marker != lengths[u][j])
                 {
-                    std::cerr << typeid(*this).name() << ": ERROR: Incorrect number of '" << comparators[j] << "' at " << is.tellg() << " (expected " << lengths[u][j] << " got " << marker << ")." << std::endl;
-                    return is;
+                    std::cerr << typeid(*this).name() << ": WARNING: Incorrect number of '" << comparators[j] << "' at " << is.tellg() << " (expected " << lengths[u][j] << " got " << marker << ")." << std::endl;
                 }
                 code << templates[u][j];
                 code << curChar;

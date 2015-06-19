@@ -73,7 +73,7 @@ std::istream& ByteCode::operator<<(std::istream &is)
         }
         else if(is.good())
         {
-            std::cerr << typeid(*this).name() << ": ERROR: Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
+            std::cerr << typeid(*this).name() << ": WARNING: Ignoring Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
         }
     }
     return is;
