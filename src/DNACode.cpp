@@ -3,7 +3,6 @@
 DNACode::DNACode()
 {
     //ctor
-    legacy = true;
 }
 
 DNACode::~DNACode()
@@ -19,9 +18,23 @@ const int lengths[4][3] =
     {2,5,0}
 };
 
+Code& DNACode::operator>>(Code &other)
+{
+    ByteCode localConv;
+    this->operator>>(localConv);
+    other << localConv;
+    return other;
+}
 
+Code& DNACode::operator<<(Code &other)
+{
+    ByteCode localConv;
+    other >> localConv;
+    this->operator<<(localConv);
+    return *this;
+}
 
-void DNACode::operator>>(ByteCode& other) //local >> Bytecode (local -> byte)
+ByteCode& DNACode::operator>>(ByteCode &other) //local to bytecode -> ByteCode
 {
     resetCode(other);
     code.clear();
@@ -46,89 +59,13 @@ void DNACode::operator>>(ByteCode& other) //local >> Bytecode (local -> byte)
             curOp[3] ^= curOp[2];
             curOp[2] ^= curOp[3];
         }
-        switch(curOp[0])
-        {
-            case 'A':
-                switch(curOp[2])
-                {
-                    case 'A':
-                        writeCode(other, ">", 1);
-                        break;
-                    case 'G':
-                        writeCode(other, "<", 1);
-                        break;
-                    case 'T':
-                        writeCode(other, "+", 1);
-                        break;
-                    case 'C':
-                        writeCode(other, "-", 1);
-                        break;
-                }
-                break;
-            case 'G':
-                switch(curOp[2])
-                {
-                    case 'A':
-                        writeCode(other, ".", 1);
-                        break;
-                    case 'G':
-                        writeCode(other, ",", 1);
-                        break;
-                    case 'T':
-                        writeCode(other, "[", 1);
-                        break;
-                    case 'C':
-                        writeCode(other, "]", 1);
-                        break;
-                }
-                break;
-            case 'T':
-                switch(curOp[2])
-                {
-                    case 'A':
-                        if(legacy)
-                        {
-                            writeCode(other, "X=", 2);
-                        }
-                        else
-                        {
-                            writeCode(other, ":=", 2);
-                        }
-                        break;
-                    case 'G':
-                        writeCode(other, "+=", 2);
-                        break;
-                    case 'T':
-                        writeCode(other, "-=", 2);
-                        break;
-                    case 'C':
-                        writeCode(other, "*=", 2);
-                        break;
-                }
-                break;
-            case 'C':
-                switch(curOp[2])
-                {
-                    case 'A':
-                        writeCode(other, "/=", 2);
-                        break;
-                    case 'G':
-                        writeCode(other, "~", 1);
-                        break;
-                    case 'T':
-                        writeCode(other, "?", 1);
-                        break;
-                    case 'C':
-                        writeCode(other, "X", 1);
-                        break;
-                }
-                break;
-        }
+        convertAndWrite(other, curOp);
         if(!legacy && (j%4 == 3))
         {
             swapOp = !swapOp;
         }
     }
+    return other;
 }
 
 
@@ -140,7 +77,7 @@ const char templates[4][3][12] =
     {"  ","-----",""}
 }; //DO NOT CHANGE WITHOUT CHECKING BOUNDS
 
-void DNACode::operator<<(ByteCode& other)
+Code& DNACode::operator<<(ByteCode &other)
 {
     char op[2];
     char dna[2];
@@ -152,96 +89,7 @@ void DNACode::operator<<(ByteCode& other)
         for(int i = 0; i < 8 && ((len = other.readTok(op)) != 0); i++)
         {
             int u = i < 4 ? i : 8 - i - 1;
-            switch(len)
-            {
-                case 1:
-                    switch(op[0])
-                    {
-                        case '>':
-                            dna[0] = 'A';
-                            dna[1] = 'A';
-                            break;
-                        case '<':
-                            dna[0] = 'A';
-                            dna[1] = 'G';
-                            break;
-                        case '+':
-                            dna[0] = 'A';
-                            dna[1] = 'T';
-                            break;
-                        case '-':
-                            dna[0] = 'A';
-                            dna[1] = 'C';
-                            break;
-                        case '.':
-                            dna[0] = 'G';
-                            dna[1] = 'A';
-                            break;
-                        case ',':
-                            dna[0] = 'G';
-                            dna[1] = 'G';
-                            break;
-                        case '[':
-                            dna[0] = 'G';
-                            dna[1] = 'T';
-                            break;
-                        case ']':
-                            dna[0] = 'G';
-                            dna[1] = 'A';
-                            break;
-                        case '~':
-                            dna[0] = 'C';
-                            dna[1] = 'G';
-                            break;
-                        case '?':
-                            dna[0] = 'C';
-                            dna[1] = 'T';
-                            break;
-                        case 'X':
-                            dna[0] = 'C';
-                            dna[1] = 'C';
-                            break;
-                    }
-                    if(legacy && op[0] == '=')
-                    {
-                        dna[0] = 'T';
-                        dna[1] = 'A';
-                    }
-                    break;
-                case 2:
-                    if(op[1] != '=')
-                    {
-                        std::cerr << "Expected '=' but got " << op[1] << " while translating ByteCode to DNACode." << std::endl;
-                        return;
-                    }
-                    switch(op[0])
-                    {
-                        case ':':
-                            dna[0] = 'T';
-                            dna[1] = 'A';
-                            break;
-                        case '+':
-                            dna[0] = 'T';
-                            dna[1] = 'G';
-                            break;
-                        case '-':
-                            dna[0] = 'T';
-                            dna[1] = 'T';
-                            break;
-                        case '*':
-                            dna[0] = 'T';
-                            dna[1] = 'C';
-                            break;
-                        case '/':
-                            dna[0] = 'C';
-                            dna[1] = 'A';
-                            break;
-                        default:
-                            std::cerr << "Expected +,-,*,/,: but got '" << op[0] << "' while translating ByteCode to DNACode" << std::endl;
-                            return;
-                    }
-                    break;
-            }
+            convert(op, dna, len);
             sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[0], templates[u][1], remap(dna[0]), templates[u][2]);
             code << line;
 
@@ -252,9 +100,10 @@ void DNACode::operator<<(ByteCode& other)
             code << line;
         }
     }
+    return *this;
 }
 
-std::istream& DNACode::operator<<(std::istream& is)
+std::istream& DNACode::operator<<(std::istream &is)
 {
     const char comparators[2] = {' ', '-'};
 

@@ -3,7 +3,6 @@
 ByteCode::ByteCode()
 {
     //ctor
-    legacy = true;
 }
 
 ByteCode::~ByteCode()
@@ -11,18 +10,31 @@ ByteCode::~ByteCode()
     //dtor
 }
 
-void ByteCode::operator>>(ByteCode& other)
+ByteCode& ByteCode::operator>>(ByteCode &other) //local -> ByteCode (other)
 {
-    std::cout << "ByteCode >> called with " << other << std::endl;
     other.code.str(code.str());
+    return other;
 }
 
-void ByteCode::operator<<(ByteCode& other)
+Code& ByteCode::operator<<(ByteCode &other) //ByteCode -> local (this)
 {
-
+    code.str(other.code.str());
+    return *this;
 }
 
-std::istream& ByteCode::operator<<(std::istream& is)
+Code& ByteCode::operator>>(Code &other) //local -> Code (Code)
+{
+    other << *this;
+    return other;
+}
+
+Code& ByteCode::operator<<(Code &other)
+{
+    other >> *this;
+    return *this;
+}
+
+std::istream& ByteCode::operator<<(std::istream &is)
 {
     code.str(std::string());
     char lastChar, curChar = 0;
@@ -127,7 +139,7 @@ bool ByteCode::isSingleCharOp(char x)
     return legacy && x == '=';
 }
 
-bool ByteCode::isTok(char last, char cur, int& len)
+bool ByteCode::isTok(char last, char cur, int &len)
 {
     return ((len = 1), isSingleCharOp(cur)) || ((len = 2), (((!legacy && last == ':') || isArithmeticOp(last)) && cur == '=')) || ((len = 0), false);
 }

@@ -9,9 +9,11 @@ class ByteCode : public Code
     public:
         ByteCode();
         virtual ~ByteCode();
-        virtual void operator>>(ByteCode& other); //
-        virtual void operator<<(ByteCode& other);
-        virtual std::istream& operator<<(std::istream& is); //read Code from stream
+        virtual ByteCode& operator>>(ByteCode &other); //local to bytecode -> ByteCode
+        virtual Code& operator<<(ByteCode &other); //bytecode to local -> local
+        virtual Code& operator>>(Code &other); //local -> code -> code
+        virtual Code& operator<<(Code &other);
+        virtual std::istream& operator<<(std::istream &is); //read Code from stream
         char* toCharArray();
         void resetReader()
         {
@@ -45,7 +47,7 @@ class ByteCode : public Code
         bool isValidChar(char);
         bool isArithmeticOp(char);
         bool isSingleCharOp(char x);
-        bool isTok(char, char, int& len);
+        bool isTok(char, char, int &len);
     private:
 };
 

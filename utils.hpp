@@ -7,9 +7,6 @@
 #include <stdio.h>
 
 void printHelp();
-char remap(char);
-void gen(std::istream& rd, std::ostream& wr);
-std::string openFiles(int argc, char **argv, std::ifstream& rd, std::ofstream& wr);
-bool istoken(char *in);
+void errCmd(const std::string& msg);
 
 #endif // UTILS_HPP_INCLUDED
