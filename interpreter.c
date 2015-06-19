@@ -1,8 +1,11 @@
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define DYNAMIC_MEMORY_LENGHT (128)
 
 typedef struct {
-    int array[100];
-    const int lenght = 100;
+    int array[DYNAMIC_MEMORY_LENGHT];
 } dynamic_memory_t;
 
 typedef struct environment_s environment_t;
@@ -36,7 +39,7 @@ enum opcodes {
     OP_NOP_CGCG = 15          // X
 };
 
-#define BYTECODE_DEBUG false
+#define BYTECODE_DEBUG 0
 
 #define OP_DATA              (0x0F)
 #define OP_HEADER_SHIFT      (4)
@@ -57,15 +60,15 @@ enum opcodes {
 #define OP_HEADER_ADD_GET(value) ((OP_HEADER_ADD_DATA & (value)) >> OP_HEADER_SHIFT)
 #define OP_HEADER_LOCAL_GET(value) (((OP_HEADER_LOCAL_DATA & (value)) >> OP_HEADER_SHIFT) + 1)
 
-int* get_memory(environment_t* env, int64_t offset) {
-    int adress = (env->memory_adress + offset) % env->memory.lenght;
-    if(adress < 0) adress = env->memory.lenght + adress;
+int* get_memory_offset(environment_t* env, int64_t offset) {
+    int adress = (env->memory_adress + offset) % DYNAMIC_MEMORY_LENGHT;
+    if(adress < 0) adress = DYNAMIC_MEMORY_LENGHT + adress;
     return &env->memory.array[adress];
 }
 
 int* get_memory(environment_t* env) {
-    int adress = env->memory_adress % env->memory.lenght;
-    if(adress < 0) adress = env->memory.lenght + adress;
+    int adress = env->memory_adress % DYNAMIC_MEMORY_LENGHT;
+    if(adress < 0) adress = DYNAMIC_MEMORY_LENGHT + adress;
     return &env->memory.array[adress];
 }
 
@@ -86,13 +89,13 @@ void check_space(opcode_dynamic_array_t** code, int additional) {
     }
 }
 
-int add_opcode(opcode_dynamic_array_t** code, opcodes operation) {
+int add_opcode(opcode_dynamic_array_t** code, enum opcodes operation) {
     check_space(code, 1);
     (*code)->data[(*code)->pointer++] = operation;
     return (*code)->pointer;
 }
 
-int add_opcode(opcode_dynamic_array_t** code, opcodes operation, int64_t value) {
+int add_opcode_value(opcode_dynamic_array_t** code, enum opcodes operation, int64_t value) {
     check_space(code, 9);
     if(1 <= value && value <= 8) {
         (*code)->data[(*code)->pointer++] = operation | OP_HEADER_LOCAL_CREATE(value);
@@ -208,19 +211,19 @@ void step(environment_t* env) {
         break;
         // extended
         case OP_ASSIGN_TAAT:       // :=
-        *get_memory(env) = *get_memory(env, param);
+        *get_memory(env) = *get_memory_offset(env, param);
         break;
         case OP_ADD_TAGC:          // +=
-        *get_memory(env) += *get_memory(env, param);
+        *get_memory(env) += *get_memory_offset(env, param);
         break;
         case OP_SUB_TATA:         // -=
-        *get_memory(env) -= *get_memory(env, param);
+        *get_memory(env) -= *get_memory_offset(env, param);
         break;
         case OP_MUL_TACG:         // *=
-        *get_memory(env) *= *get_memory(env, param);
+        *get_memory(env) *= *get_memory_offset(env, param);
         break;
         case OP_DIV_CGAT:         // /=
-        *get_memory(env) /= *get_memory(env, param);
+        *get_memory(env) /= *get_memory_offset(env, param);
         break;
         case OP_PRINT_INT_CGGC:   // ~
         printf("%d", *get_memory(env));
@@ -236,7 +239,7 @@ void step(environment_t* env) {
         break;
     }
     if (BYTECODE_DEBUG) {
-        for(int i = 0; i < 10 && i < env->memory.lenght; i++) {
+        for(int i = 0; i < 10 && i < DYNAMIC_MEMORY_LENGHT; i++) {
             printf("%d: %d\n", i, env->memory.array[i]);
         }
     }
@@ -252,34 +255,34 @@ int main(int argc, const char * argv[]) {
     
     while (pointer < lenght) {
         int value = 1;
-        bool special = false;
-        opcodes ocode = OP_NOP_CGCG;
+        int special = 0;
+        enum opcodes ocode = OP_NOP_CGCG;
         if(pointer+1 < lenght && hello_world[pointer+1] == '=') {
             switch (hello_world[pointer]) {
                 case ':':
-                special = true;
+                special = 1;
                 ocode = OP_ASSIGN_TAAT;
                 break;
                 case '+':
-                special = true;
+                special = 1;
                 ocode = OP_ADD_TAGC;
                 break;
                 case '-':
-                special = true;
+                special = 1;
                 ocode = OP_SUB_TATA;
                 break;
                 case '*':
-                special = true;
+                special = 1;
                 ocode = OP_MUL_TACG;
                 break;
                 case '/':
-                special = true;
+                special = 1;
                 ocode = OP_DIV_CGAT;
                 break;
             }
         }
         if (hello_world[pointer] == '=') {
-            special = true;
+            special = 1;
             ocode = OP_ASSIGN_TAAT;
             pointer--;
         }
@@ -289,7 +292,7 @@ int main(int argc, const char * argv[]) {
             while (pointer+1 < lenght && (hello_world[++pointer] == '<' || hello_world[pointer] == '>')) {
                 value += hello_world[pointer] == '>' ? 1 : -1;
             }
-            add_opcode(&code, ocode, value);
+            add_opcode_value(&code, ocode, value);
             continue;
         }
         switch (hello_world[pointer]) {
@@ -300,25 +303,25 @@ int main(int argc, const char * argv[]) {
             while (pointer+1 < lenght && (hello_world[++pointer] == '+' && hello_world[pointer+1] != '=')) {
                 value++;
             }
-            add_opcode(&code, OP_VAL_INCREASE_ATTA, value);
+            add_opcode_value(&code, OP_VAL_INCREASE_ATTA, value);
             break;
             case '-':
             while (pointer+1 < lenght && (hello_world[++pointer] == '-' && hello_world[pointer+1] != '=')) {
                 value++;
             }
-            add_opcode(&code, OP_VAL_DECREASE_ATCG, value);
+            add_opcode_value(&code, OP_VAL_DECREASE_ATCG, value);
             break;
             case '>':
             while (pointer+1 < lenght && hello_world[++pointer] == '>') {
                 value++;
             }
-            add_opcode(&code, OP_PTR_INCREASE_ATAT, value);
+            add_opcode_value(&code, OP_PTR_INCREASE_ATAT, value);
             break;
             case '<':
             while (pointer+1 < lenght && hello_world[++pointer] == '<') {
                 value++;
             }
-            add_opcode(&code, OP_PTR_DECREASE_ATGC, value);
+            add_opcode_value(&code, OP_PTR_DECREASE_ATGC, value);
             break;
             case '.':
             pointer++;
@@ -339,14 +342,14 @@ int main(int argc, const char * argv[]) {
             case '[':
             pointer++;
             {
-                int from = add_opcode(&code, OP_BEGIN_LOOP_GCTA, INT64_MIN);
+                int from = add_opcode_value(&code, OP_BEGIN_LOOP_GCTA, INT64_MIN);
                 push(&stack, from);
             }
             break;
             case ']':
             pointer++;
             int from = pop(&stack);
-            int to = add_opcode(&code, OP_END_LOOP_GCCG, INT64_MIN);
+            int to = add_opcode_value(&code, OP_END_LOOP_GCCG, INT64_MIN);
             put_opcode_value(&code, to - 8, from - to);
             put_opcode_value(&code, from - 8, to - from);
             break;
@@ -356,7 +359,7 @@ int main(int argc, const char * argv[]) {
     environment_t env;
     env.data = (*code).data;
     env.lenght = (*code).pointer;
-    for(int i = 0; i < env.memory.lenght; i++) env.memory.array[i] = 0;
+    for(int i = 0; i < DYNAMIC_MEMORY_LENGHT; i++) env.memory.array[i] = 0;
     env.memory_adress = 0;
     env.program_counter = 0;
     
