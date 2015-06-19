@@ -21,6 +21,7 @@ ByteCode& LineCode::operator>>(ByteCode &other)
         code.read(curOp, 4);
         if(code.good())
         {
+            curOp[1] = curOp[2];
             convertAndWrite(other, curOp);
         }
     }

@@ -28,7 +28,7 @@ void Code::convertAndWrite(Code &other, char *in)
     switch(in[0])
     {
         case 'A':
-            switch(in[2])
+            switch(in[1])
             {
                 case 'A':
                     writeCode(other, ">", 1);
@@ -45,7 +45,7 @@ void Code::convertAndWrite(Code &other, char *in)
             }
             break;
         case 'G':
-            switch(in[2])
+            switch(in[1])
             {
                 case 'A':
                     writeCode(other, ".", 1);
@@ -62,7 +62,7 @@ void Code::convertAndWrite(Code &other, char *in)
             }
             break;
         case 'T':
-            switch(in[2])
+            switch(in[1])
             {
                 case 'A':
                     if(legacy)
@@ -86,7 +86,7 @@ void Code::convertAndWrite(Code &other, char *in)
             }
             break;
         case 'C':
-            switch(in[2])
+            switch(in[1])
             {
                 case 'A':
                     writeCode(other, "/=", 2);

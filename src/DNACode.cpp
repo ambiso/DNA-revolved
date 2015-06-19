@@ -41,12 +41,23 @@ ByteCode& DNACode::operator>>(ByteCode &other) //local to bytecode -> ByteCode
     code.seekg(0);
     char curChar;
     char curOp[4];
-    while(code.good())
+    bool swapOp = false;
+    for(int j = 0; code.good(); j++, j%=4)
     {
         for(int i = 0; i < 4; i++)
         {
             while(code.read(&curChar, 1), (curChar != 'A' && curChar != 'G' && curChar != 'T' && curChar != 'C') && code.good());
             curOp[i] = curChar;
+        }
+        curOp[1] = curOp[2];
+        if(swapOp)
+        {
+            curOp[0] = remap(curOp[0]);
+            curOp[1] = remap(curOp[1]);
+        }
+        if(!legacy && j == 3)
+        {
+            swapOp = !swapOp;
         }
         convertAndWrite(other, curOp);
     }
