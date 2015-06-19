@@ -34,7 +34,7 @@ void gen(std::istream& rd, std::ostream& wr)
 
     char *line = new char[11]; //DO NOT CHANGE WITHOUT CHECKING BOUNDS
     char lastChar = '\0', curChar = '\0';
-    if(rd.good() && !rd.eof())
+    if(rd.good())
     {
         rd.read(&lastChar, 1);
     }
@@ -42,15 +42,16 @@ void gen(std::istream& rd, std::ostream& wr)
     {
         throw 4;
     }
-    while(rd.good() && !rd.eof() && wr.good())
+
+    while(rd.good() && wr.good())
     {
-        for(int i = 0; rd.good() && !rd.eof() && wr.good() && i < 8; i++)
+        for(int i = 0; rd.good() && wr.good() && i < 8; i++)
         {
             int u = i < 4 ? i : 8 - i - 1;
             rd.read(&curChar, 1);
             if(lastChar == '/' && curChar == '*') //if comment
             {
-                while(rd.good() && !rd.eof())
+                while(rd.good())
                 {
                     lastChar = curChar;
                     rd.read(&curChar, 1);
@@ -82,7 +83,7 @@ std::string openFiles(int argc, char **argv, std::ifstream& rd, std::ofstream& w
 {
     std::string file = argv[2];
     rd.open(file.c_str());
-    if(!rd.is_open() || !rd.good() || rd.eof())
+    if(!rd.is_open() || !rd.good())
     {
         std::cerr << "Could not open input file or file is empty." << std::endl;
         throw 1;

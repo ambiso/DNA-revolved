@@ -10,23 +10,24 @@ ByteCode::~ByteCode()
     //dtor
 }
 
-void ByteCode::operator>>(const ByteCode& other)
+void ByteCode::operator>>(ByteCode& other)
 {
-    code.str(other.code.str());
+    std::cout << "ByteCode >> called with " << other << std::endl;
+    other.code.str(code.str());
 }
 
 std::istream& ByteCode::operator<<(std::istream& is)
 {
     code.str(std::string());
     char lastChar, curChar = 0;
-    while(is.good() && !is.eof())
+    while(is.good())
     {
         do
         {
             lastChar = curChar;
             is.read(&curChar, 1);
         }
-        while(!isValidChar(curChar) && is.good() && !is.eof());
+        while(!isValidChar(curChar) && is.good());
 
         if((isspace(lastChar) || lastChar == '/') && curChar == '/')
         {
@@ -36,13 +37,13 @@ std::istream& ByteCode::operator<<(std::istream& is)
                 lastChar = curChar;
                 is.read(&curChar, 1);
             }
-            while(is.good() && !is.eof() && (lastChar != '*' || curChar != '/'));
+            while(is.good() && (lastChar != '*' || curChar != '/'));
         }
         else if(isTok(lastChar, curChar))
         {
             code << curChar;
         }
-        else if(is.good() && !is.eof())
+        else if(is.good())
         {
             std::cerr << "ERROR: Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
         }
@@ -112,10 +113,10 @@ bool ByteCode::isTok(char last, char cur)
 
 char* ByteCode::toCharArray()
 {
-    size_t len = code.gcount();
+    std::streamsize len = code.gcount();
     char *arrCopy = new char[len];
-    code.seekg(0);
-    for(size_t i = 0; i < len && !code.eof(); i++)
+    code.seekg(0, std::ios::beg);
+    for(std::streamsize i = 0; i < len && !code.good(); i++)
     {
         code.read(arrCopy+i, 1);
     }

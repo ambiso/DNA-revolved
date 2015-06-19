@@ -9,9 +9,11 @@ class DNACode : public Code
     public:
         DNACode();
         virtual ~DNACode();
-        virtual void operator>>(const ByteCode& other); //translate from Bytecode to local Code type
-        virtual std::istream& operator>>(std::istream& is); //read Code from stream
+        virtual void operator>>(ByteCode& other); //local -> Bytecode
+        virtual std::istream& operator<<(std::istream& is);
+        void toggleLegacy();
     protected:
+        bool legacy;
     private:
 };
 

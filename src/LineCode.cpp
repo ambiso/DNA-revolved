@@ -17,5 +17,5 @@ void LineCode::operator>>(const ByteCode& other)
 
 std::istream& LineCode::operator>>(std::istream& is)
 {
-
+    return is;
 }

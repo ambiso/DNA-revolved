@@ -9,7 +9,7 @@ class ByteCode : public Code
     public:
         ByteCode();
         virtual ~ByteCode();
-        virtual void operator>>(const ByteCode& other); //translate from Bytecode to local Code type
+        virtual void operator>>(ByteCode& other); //translate from Bytecode to local Code type
         virtual std::istream& operator<<(std::istream& is); //read Code from stream
         char* toCharArray();
     protected:
