@@ -8,14 +8,16 @@ int main(int argc, char **argv)
 {
 
     ByteCode bc;
-    std::ifstream rd("test");
-
     DNACode dc;
+    std::ifstream rd("test");
+    bc << rd;
 
-    dc << rd;
-    dc >> bc;
-    std::cout << dc << std::endl;
     std::cout << bc << std::endl;
+
+    dc << bc;
+    dc >> bc;
+
+    std::cout << dc << std::endl;
 
 
     return 0;

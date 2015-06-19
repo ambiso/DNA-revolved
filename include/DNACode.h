@@ -10,10 +10,9 @@ class DNACode : public Code
         DNACode();
         virtual ~DNACode();
         virtual void operator>>(ByteCode& other); //local -> Bytecode
+        virtual void operator<<(ByteCode& other);
         virtual std::istream& operator<<(std::istream& is);
-        void toggleLegacy();
     protected:
-        bool legacy;
     private:
 };
 

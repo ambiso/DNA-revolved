@@ -19,10 +19,7 @@ const int lengths[4][3] =
     {2,5,0}
 };
 
-void DNACode::toggleLegacy()
-{
-    legacy = !legacy;
-}
+
 
 void DNACode::operator>>(ByteCode& other) //local >> Bytecode (local -> byte)
 {
@@ -38,10 +35,6 @@ void DNACode::operator>>(ByteCode& other) //local >> Bytecode (local -> byte)
         {
             while(code.read(&curChar, 1), (curChar != 'A' && curChar != 'G' && curChar != 'T' && curChar != 'C') && code.good());
             curOp[i] = curChar;
-        }
-        if(legacy && (j%8 == 7))
-        {
-            swapOp = !swapOp;
         }
         if(swapOp)
         {
@@ -131,8 +124,13 @@ void DNACode::operator>>(ByteCode& other) //local >> Bytecode (local -> byte)
                 }
                 break;
         }
+        if(!legacy && (j%4 == 3))
+        {
+            swapOp = !swapOp;
+        }
     }
 }
+
 
 const char templates[4][3][12] =
 {
@@ -141,6 +139,120 @@ const char templates[4][3][12] =
     {"  ","----"," "},
     {"  ","-----",""}
 }; //DO NOT CHANGE WITHOUT CHECKING BOUNDS
+
+void DNACode::operator<<(ByteCode& other)
+{
+    char op[2];
+    char dna[2];
+    char line[12];
+    int len;
+    other.resetReader();
+    while(other.good())
+    {
+        for(int i = 0; i < 8 && ((len = other.readTok(op)) != 0); i++)
+        {
+            int u = i < 4 ? i : 8 - i - 1;
+            switch(len)
+            {
+                case 1:
+                    switch(op[0])
+                    {
+                        case '>':
+                            dna[0] = 'A';
+                            dna[1] = 'A';
+                            break;
+                        case '<':
+                            dna[0] = 'A';
+                            dna[1] = 'G';
+                            break;
+                        case '+':
+                            dna[0] = 'A';
+                            dna[1] = 'T';
+                            break;
+                        case '-':
+                            dna[0] = 'A';
+                            dna[1] = 'C';
+                            break;
+                        case '.':
+                            dna[0] = 'G';
+                            dna[1] = 'A';
+                            break;
+                        case ',':
+                            dna[0] = 'G';
+                            dna[1] = 'G';
+                            break;
+                        case '[':
+                            dna[0] = 'G';
+                            dna[1] = 'T';
+                            break;
+                        case ']':
+                            dna[0] = 'G';
+                            dna[1] = 'A';
+                            break;
+                        case '~':
+                            dna[0] = 'C';
+                            dna[1] = 'G';
+                            break;
+                        case '?':
+                            dna[0] = 'C';
+                            dna[1] = 'T';
+                            break;
+                        case 'X':
+                            dna[0] = 'C';
+                            dna[1] = 'C';
+                            break;
+                    }
+                    if(legacy && op[0] == '=')
+                    {
+                        dna[0] = 'T';
+                        dna[1] = 'A';
+                    }
+                    break;
+                case 2:
+                    if(op[1] != '=')
+                    {
+                        std::cerr << "Expected '=' but got " << op[1] << " while translating ByteCode to DNACode." << std::endl;
+                        return;
+                    }
+                    switch(op[0])
+                    {
+                        case ':':
+                            dna[0] = 'T';
+                            dna[1] = 'A';
+                            break;
+                        case '+':
+                            dna[0] = 'T';
+                            dna[1] = 'G';
+                            break;
+                        case '-':
+                            dna[0] = 'T';
+                            dna[1] = 'T';
+                            break;
+                        case '*':
+                            dna[0] = 'T';
+                            dna[1] = 'C';
+                            break;
+                        case '/':
+                            dna[0] = 'C';
+                            dna[1] = 'A';
+                            break;
+                        default:
+                            std::cerr << "Expected +,-,*,/,: but got '" << op[0] << "' while translating ByteCode to DNACode" << std::endl;
+                            return;
+                    }
+                    break;
+            }
+            sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[0], templates[u][1], remap(dna[0]), templates[u][2]);
+            code << line;
+
+            i++;
+            u = i < 4 ? i : 8 - i - 1;
+
+            sprintf(line, "%s%c%s%c%s\n", templates[u][0], dna[1], templates[u][1], remap(dna[1]), templates[u][2]);
+            code << line;
+        }
+    }
+}
 
 std::istream& DNACode::operator<<(std::istream& is)
 {

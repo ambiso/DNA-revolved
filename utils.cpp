@@ -32,7 +32,7 @@ void gen(std::istream& rd, std::ostream& wr)
         {"  ","-----",""}
     }; //DO NOT CHANGE WITHOUT CHECKING BOUNDS
 
-    char *line = new char[11]; //DO NOT CHANGE WITHOUT CHECKING BOUNDS
+    char line[11]; //DO NOT CHANGE WITHOUT CHECKING BOUNDS
     char lastChar = '\0', curChar = '\0';
     if(rd.good())
     {

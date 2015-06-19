@@ -3,6 +3,7 @@
 ByteCode::ByteCode()
 {
     //ctor
+    legacy = true;
 }
 
 ByteCode::~ByteCode()
@@ -16,10 +17,17 @@ void ByteCode::operator>>(ByteCode& other)
     other.code.str(code.str());
 }
 
+void ByteCode::operator<<(ByteCode& other)
+{
+
+}
+
 std::istream& ByteCode::operator<<(std::istream& is)
 {
     code.str(std::string());
     char lastChar, curChar = 0;
+    int len;
+    bool lastTokErr = false;
     while(is.good())
     {
         do
@@ -39,13 +47,27 @@ std::istream& ByteCode::operator<<(std::istream& is)
             }
             while(is.good() && (lastChar != '*' || curChar != '/'));
         }
-        else if(isTok(lastChar, curChar))
+        else if(isTok(lastChar, curChar, len))
         {
-            code << curChar;
+            if(len == 1)
+            {
+                code << curChar;
+                lastTokErr = false;
+            }
+            else if(len == 2)
+            {
+                code << lastChar << curChar;
+                lastTokErr = false;
+            }
+
         }
         else if(is.good())
         {
-            std::cerr << "ERROR: Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
+            if(lastTokErr)
+            {
+                std::cerr << "ERROR: Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
+            }
+            lastTokErr = true;
         }
     }
     return is;
@@ -78,7 +100,7 @@ bool ByteCode::isValidChar(char x)
         case '+':
         case '-':
         case '*':
-        case '/':
+        case '/': //also for comments
             return true;
         default:
             return false;
@@ -101,17 +123,16 @@ bool ByteCode::isSingleCharOp(char x)
         case '?':
         case 'X':
             return true;
-        default:
-            return false;
     }
+    return legacy && x == '=';
 }
 
-bool ByteCode::isTok(char last, char cur)
+bool ByteCode::isTok(char last, char cur, int& len)
 {
-    return isSingleCharOp(cur) || isSingleCharOp(last) || (isArithmeticOp(last) && cur == '=');
+    return ((len = 1), isSingleCharOp(cur)) || ((len = 2), (((!legacy && last == ':') || isArithmeticOp(last)) && cur == '=')) || ((len = 0), false);
 }
 
-char* ByteCode::toCharArray()
+char* ByteCode::toCharArray() //YOU MUST MANAGE THE RETURNED ARRAY YOURSELF
 {
     std::streamsize len = code.gcount();
     char *arrCopy = new char[len];
