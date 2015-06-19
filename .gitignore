@@ -3,3 +3,6 @@
 *.layout
 bin/
 obj/
+*~
+test*
+*.dna
