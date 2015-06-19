@@ -101,11 +101,11 @@ std::istream& LineCode::operator<<(std::istream &is)
         {
             if(remap(lastChar) == 'X')
             {
-                std::cerr << "\"" << lastChar << curChar << "\" is not a valid character sequence in LineCode." << std::endl;
+                std::cerr << typeid(*this).name() << ": ERROR: \"" << lastChar << curChar << "\" is not a valid character sequence." << std::endl;
             }
             else
             {
-                std::cerr << "ERROR: Expected " << remap(lastChar) << " but got " << curChar << " while parsing LineCode at " << is.tellg() << "." << std::endl;
+                std::cerr << typeid(*this).name() << ": ERROR: Expected " << remap(lastChar) << " but got " << curChar << " while parsing LineCode at " << is.tellg() << "." << std::endl;
             }
             return is;
         }

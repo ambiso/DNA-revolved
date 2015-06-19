@@ -39,7 +39,6 @@ std::istream& ByteCode::operator<<(std::istream &is)
     code.str(std::string());
     char lastChar, curChar = 0;
     int len;
-    bool lastTokErr = false;
     while(is.good())
     {
         do
@@ -47,7 +46,7 @@ std::istream& ByteCode::operator<<(std::istream &is)
             lastChar = curChar;
             is.read(&curChar, 1);
         }
-        while(!isValidChar(curChar) && is.good());
+        while(isspace(curChar) && is.good());
 
         if((isspace(lastChar) || lastChar == '/') && curChar == '/')
         {
@@ -58,28 +57,23 @@ std::istream& ByteCode::operator<<(std::istream &is)
                 is.read(&curChar, 1);
             }
             while(is.good() && (lastChar != '*' || curChar != '/'));
+            continue;
         }
         else if(isTok(lastChar, curChar, len))
         {
             if(len == 1)
             {
                 code << curChar;
-                lastTokErr = false;
             }
             else if(len == 2)
             {
                 code << lastChar << curChar;
-                lastTokErr = false;
             }
 
         }
         else if(is.good())
         {
-            if(lastTokErr)
-            {
-                std::cerr << "ERROR: Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
-            }
-            lastTokErr = true;
+            std::cerr << typeid(*this).name() << ": ERROR: Invalid Token at " << is.tellg() << ": '" << lastChar << curChar << "'" << std::endl;
         }
     }
     return is;

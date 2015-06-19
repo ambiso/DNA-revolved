@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <typeinfo>
 
 class ByteCode;
 
@@ -22,6 +23,7 @@ class Code
             return os;
         } //output code to stream
         static void toggleLegacy() { legacy = !legacy; }
+        static bool getLegacy() { return legacy; }
         void clear() { code.clear(); code.seekg(0); }
     protected:
         std::stringstream code;

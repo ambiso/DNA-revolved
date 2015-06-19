@@ -130,7 +130,8 @@ std::istream& DNACode::operator<<(std::istream &is)
                 while(curChar == comparators[j] && is.good());
                 if(j == 1 && remap(lastBase) != curChar)
                 {
-                    std::cerr << "Invalid Base Pairs at " << is.tellg() << " (" << lastBase << " and " << curChar << ")." << std::endl;
+                    std::cerr << typeid(*this).name() << ": ERROR: Invalid Base Pairs at " << is.tellg() << " (" << lastBase << " and " << curChar << ")." << std::endl;
+                    return is;
                 }
                 lastBase = curChar;
                 if(!is.good())
@@ -139,7 +140,7 @@ std::istream& DNACode::operator<<(std::istream &is)
                 }
                 if(marker != lengths[u][j])
                 {
-                    std::cerr << "ERROR: Incorrect number of '" << comparators[j] << "' at " << is.tellg() << " (expected " << lengths[u][j] << " got " << marker << ")." << std::endl;
+                    std::cerr << typeid(*this).name() << ": ERROR: Incorrect number of '" << comparators[j] << "' at " << is.tellg() << " (expected " << lengths[u][j] << " got " << marker << ")." << std::endl;
                     return is;
                 }
                 code << templates[u][j];

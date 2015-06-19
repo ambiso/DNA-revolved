@@ -1,5 +1,5 @@
 #include "utils.hpp"
-
+#include "include/Code.h"
 
 void printHelp()
 {
@@ -8,6 +8,7 @@ void printHelp()
     std::cout << "conv <format> <format>" << std::endl;
     std::cout << "print <format>" << std::endl;
     std::cout << "save <format> <file>" << std::endl;
+    std::cout << "legacy - toggle legacy mode, current: " << Code::getLegacy() << std::endl;
     std::cout << std::endl;
 }
 

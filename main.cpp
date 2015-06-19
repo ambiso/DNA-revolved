@@ -143,6 +143,11 @@ int main(int argc, char **argv)
         {
             printHelp();
         }
+        else if(cmd == "legacy")
+        {
+            Code::toggleLegacy();
+            std::cout << "Legacy mode turned " << (Code::getLegacy() ? "on" : "off") << "." << std::endl;
+        }
         else
         {
             errCmd("Invalid command.");

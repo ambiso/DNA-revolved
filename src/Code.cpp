@@ -166,7 +166,7 @@ void Code::convert(char *op, char *dna, std::streamsize len)
         case 2:
             if(op[1] != '=')
             {
-                std::cerr << "Expected '=' but got " << op[1] << " while translating ByteCode to DNA." << std::endl;
+                std::cerr << typeid(*this).name() << ": ERROR: Expected '=' but got " << op[1] << "." << std::endl;
                 return;
             }
             switch(op[0])
@@ -192,7 +192,7 @@ void Code::convert(char *op, char *dna, std::streamsize len)
                     dna[1] = 'A';
                     break;
                 default:
-                    std::cerr << "Expected +,-,*,/,: but got '" << op[0] << "' while translating ByteCode to DNA." << std::endl;
+                    std::cerr << typeid(*this).name() << " ERROR: Expected +,-,*,/,: but got '" << op[0] << "' while translating ByteCode to DNA." << std::endl;
                     return;
             }
             break;
